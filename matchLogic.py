@@ -11,12 +11,15 @@ FORMAT = 'utf-8'
 CODE_LENGTH = 2
 
 DISCONNECT_MESSAGE = "11"
+LEAVE_CHAT = "12"
 
+players_dict = {}
 
 class ServerManager:
     USERNAME_MESSAGE = "00"
     GAME_NAME_MESSAGE = "01"
     CANCLE_REQUEST_MESSGAE = "03"
+    MESSAGE_SENT = "10"
     in_chat = False
 
     def __init__(self):
@@ -35,17 +38,35 @@ class ServerManager:
         i = 0
         connected = True
         while connected:
+            print("start loop")
             if i < 1:
                 msg_code = player_socket.recv(CODE_LENGTH).decode()
                 if msg_code:
                     if msg_code == DISCONNECT_MESSAGE:
                         print(f"[SERVER] disconnecting from connection {addr}")
                         connected = False
+                    elif msg_code == LEAVE_CHAT:
+                        if player_socket in self.clients_games.keys():
+                            player2_socket = players_dict[player_socket]
+                            player2_socket.send(DISCONNECT_MESSAGE.encode())
+                            self.end_match(player_socket)
+                            print("ending match!")
+                        else:
+                            pass
+                            # TODO decide what to do if trying to leave non-exist chat
                     else:
                         print("[SERVER] entering...")
                         msg_length = int(player_socket.recv(HEADER).decode())
                         msg = player_socket.recv(msg_length).decode()
-                        if msg_code == self.GAME_NAME_MESSAGE:
+                        if msg_code == self.MESSAGE_SENT:
+                            if player_socket in players_dict.keys():
+                                player2_socket = players_dict[player_socket]
+                                player2_socket.send(str(msg_length).encode() + msg.encode())
+                            else:
+                                pass
+                                #TODO decide what to do if trying to send a message while not connected to chat
+
+                        elif msg_code == self.GAME_NAME_MESSAGE:
                             print("[SERVER] passing game to play")
                             self.clients_games[player_socket] = msg
                             self.match_manager.register_game(player_socket,msg)
@@ -58,7 +79,7 @@ class ServerManager:
                             else:
                                 pass
                                 #TODO need to decide what to do if the client asks to cancle a non-exist request
-                # i = i +1
+
                 
         player_socket.close()
 
@@ -82,6 +103,13 @@ class ServerManager:
             thread_enter = threading.Thread(target=self.enter_client,args=(conn,addr))
             thread_enter.start()
 
+    def end_match(self,player_socket):
+        player2_socket = players_dict[player_socket]
+        del self.clients_games[player_socket]
+        del self.clients_games[player2_socket]
+        del players_dict[player_socket]
+        del players_dict[player2_socket]
+
 
 class MatchManager:
 
@@ -96,17 +124,6 @@ class MatchManager:
             self.games[game_name] = [player_entering_socket]
         else:
             self.games[game_name].append(player_entering_socket)
-            if self.iter == 0:
-                player1.in_chat = True
-                self.iter = self.iter + 1
-            else:
-                player2.in_chat = True
-            """
-            players_list = self.games[game_name]
-            player_wait_socket = players_list.pop(0)
-            chat = Chat(player_entering_socket,player_wait_socket)
-            """
-
 
 
     def match_searching(self):
@@ -114,13 +131,12 @@ class MatchManager:
             if self.stop:
                 time.sleep(0.03)
             for game in self.games.values():
-                while len(game) > 1:
+                if len(game) > 1:
                     print("[MATCHMANAGER] match between two players")
                     player1_socket = game.pop(0)
                     player2_socket = game.pop(0)
-                    chat = Chat(player1_socket,player2_socket)
-                    thread = threading.Thread(target=chat.start)
-                    thread.start()
+                    players_dict[player1_socket] = player2_socket
+                    players_dict[player2_socket] = player1_socket
 
     
     def remove(self,game_name,player_socket):
@@ -129,9 +145,12 @@ class MatchManager:
         self.games[game_name].remove(player_socket)
         if len(self.games[game_name]) == 0:
             del self.games[game_name]
+
         self.stop = False
 
 
+
+'''
 class Chat:
 
     MESSAGE_SENT = "10"
@@ -191,7 +210,7 @@ class player1:
 class player2:
     in_chat = False
 
-
+'''
 
 server = ServerManager()
 server.start()
