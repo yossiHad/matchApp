@@ -32,10 +32,14 @@ def send():
 
 def receive():
     while True:
+        print("enter")
         msg_length = int(client.recv(2).decode())
+        print("after read")
         msg =""
-        if msg_length != 11:
+        if msg_length != 11 and msg_length != 1:
+            print("try read")
             msg = client.recv(msg_length).decode()
+            print("after msg read")
         print(f"message length:{msg_length}, msg:{msg}")
 
 
