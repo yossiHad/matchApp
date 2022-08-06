@@ -1,8 +1,8 @@
 import socket
 import threading
 
-HEADER = 64
-PORT = 1236
+HEADER = 3
+PORT = 1237
 FORMAT = 'utf-8'
 DISCONNECT_MESSAGE = "DISCONNECT"
 SERVER = socket.gethostbyname(socket.gethostname())
@@ -19,24 +19,27 @@ def send():
         if msg == "12":
             message = msg
         else:
-            send = msg[2:]
+            send = msg[3:]
             # message = msg.encode(FORMAT)
             msg_length = len(send)
             send_length = str(msg_length).encode(FORMAT)
             send_length += b' ' * (HEADER - len(send_length))
-            message = msg[:2] + send_length.decode() + msg[2:]
+            message = msg[:3] + send_length.decode() + msg[3:]
             # client.send(send_length)
+        print("before")
         message = message.encode()
+        print("after")
         client.send(message)
 
 
 def receive():
     while True:
         print("enter")
-        msg_length = int(client.recv(2).decode())
+        client.recv(3)
+        msg_length = int(client.recv(HEADER).decode())
         print("after read")
         msg =""
-        if msg_length != 11 and msg_length != 1:
+        if msg_length != 11:
             print("try read")
             msg = client.recv(msg_length).decode()
             print("after msg read")

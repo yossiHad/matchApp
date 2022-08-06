@@ -42,7 +42,16 @@ def remove():
             i = 0
 
 
-lock = Lock()
-threading.Thread(target=allways).start()
-threading.Thread(target=inter).start()
-threading.Thread(target=remove).start()
+# lock = Lock()
+# threading.Thread(target=allways).start()
+# threading.Thread(target=inter).start()
+# threading.Thread(target=remove).start()
+
+d = {}
+d[1] = 1
+d[2] = 2
+print(d)
+list = list(d.values())
+list.append(3)
+print(list)
+print(d.values())
