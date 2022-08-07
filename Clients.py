@@ -1,15 +1,17 @@
 from Chat import ChatManager
+from Player import Player
 
 class PlayersManager:
     players_dict = {}
 
 
     def __init__(self):
-        self.clients = {}
-        
+        self.players = {}
 
-    def add_client(self,player_socket, username):
-        self.clients[player_socket] = username
+
+    def add_player(self,player):
+        player_socket = player.get_socket()
+        self.players[player_socket] = player
 
     def get_opponent_socket(self,player_socket):
         return self.players_dict[player_socket]
@@ -20,6 +22,9 @@ class PlayersManager:
     def players_in_chat(self):
         return self.players_dict.keys()
 
+    def get_player(self,player_socket):
+        if player_socket in self.players.keys():
+            return self.players[player_socket]
 
 
 class PlayersManagerSingleton:

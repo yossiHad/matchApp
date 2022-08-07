@@ -16,7 +16,7 @@ def send():
     i = 0
     while i < 2:
         msg = input()
-        if msg == "12":
+        if msg == "#02":
             message = msg
         else:
             send = msg[3:]
@@ -35,7 +35,9 @@ def send():
 def receive():
     while True:
         print("enter")
-        client.recv(3)
+        msg = client.recv(3).decode()
+
+        print("first msf is: ", msg)
         msg_length = int(client.recv(HEADER).decode())
         print("after read")
         msg =""
@@ -44,6 +46,8 @@ def receive():
             msg = client.recv(msg_length).decode()
             print("after msg read")
         print(f"message length:{msg_length}, msg:{msg}")
+        if msg == "#01":
+            client.send("#01".encode())
 
 
 thread_send = threading.Thread(target=send)

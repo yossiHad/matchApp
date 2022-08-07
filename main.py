@@ -1,17 +1,13 @@
 import threading
+import time
 from threading import Lock
 from asyncio.windows_events import NULL
-from queue import Empty
+import multiprocessing
 
-
+import socket
+lock = threading.Lock()
 d = {}
-def allways():
-    while True:
-        lock.acquire()
 
-        for key in d.keys():
-            print("key:",key," val:",d[key])
-        lock.release()
 def inter():
     i = 0
     for x in range(10):
@@ -47,11 +43,88 @@ def remove():
 # threading.Thread(target=inter).start()
 # threading.Thread(target=remove).start()
 
-d = {}
-d[1] = 1
-d[2] = 2
-print(d)
-list = list(d.values())
-list.append(3)
-print(list)
-print(d.values())
+def count():
+    for i in range(10):
+        print(str(i))
+
+
+# thread1 = threading.Thread(target=count)
+# thread1.daemon = True
+# thread1.start()
+
+def recv():
+    try:
+        print("inside recv")
+        data = client.recv(4).decode()
+        print("finish recv ", data)
+    except Exception as e:
+        print(e)
+
+def send():
+    client.send(input().encode())
+
+
+def input_player():
+    print("inside input")
+    input()
+    print("finish input")
+
+def init_thread(func):
+    return threading.Thread(target=func)
+
+HEADER = 3
+PORT = 1237
+FORMAT = 'utf-8'
+DISCONNECT_MESSAGE = "DISCONNECT"
+SERVER = socket.gethostbyname(socket.gethostname())
+ADDR = (SERVER, PORT)
+
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client.connect(ADDR)
+def thread():
+    thread1 = init_thread(recv)
+    thread1.daemon = True
+    thread1.start()
+
+    thread2 = threading.Thread(target=count)
+    thread2.daemon = True
+    thread2.start()
+
+    while thread1.is_alive() and thread2.is_alive():
+        pass
+
+def all(list, i):
+    lock.acquire()
+    while 1 not in list:
+        time.sleep(3)
+        list.append(i)
+        print(list)
+    lock.release()
+
+def count2(list):
+    while True:
+        time.sleep(5)
+        list.append(2)
+        print(list)
+
+list = []
+# threading.Thread(target=all,args=(list, 0)).start()
+
+if __name__ == '__main__':
+    thread1 = threading.Thread(target=all, args=(list, 1))
+    thread2 = threading.Thread(target=send)
+    thread2.start()
+    print("sfgfgsfdgsdfgfgfg")
+    process = multiprocessing.Process(target=recv)
+    thread1.start()
+    print("ghgggggggggggggggggggggggggggggggggggggggggggggggg")
+    process.start()
+    print("Addddddddddddddddddd")
+    while process.is_alive() and thread1.is_alive():
+        print("in")
+        time.sleep(10)
+        list.append(1)
+    # process.terminate()
+
+#process.terminate()
+
