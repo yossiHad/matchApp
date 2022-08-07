@@ -1,5 +1,7 @@
 import socket
 import threading
+import time
+
 from Match import MatchManager
 from Player import Player
 
@@ -32,10 +34,10 @@ class ServerManager:
             while connected:
                 print("start loop")
                 msg_code = player_socket.recv(self.CODE_LENGTH).decode()
-                print("the msg_code is: ", msg_code)
+                print("[SERVER]the msg_code for player ", player.get_name(), " is: ", msg_code)
                 print("after receiving")
                 if msg_code:
-                    print("in condition")
+                    print("[SERVER] in condition for player ", player.get_name())
                     msg_length = int(player_socket.recv(self.HEADER).decode())
                     msg = player_socket.recv(msg_length).decode()
                     print("after getting full message")
@@ -49,7 +51,7 @@ class ServerManager:
                     else:
                         pass
         except Exception as e:
-            print("error ", e)
+            print("error for player:", player.get_name(), "is: ", e)
 
     def register(self,player_socket):
         msg_code = player_socket.recv(self.CODE_LENGTH).decode()
